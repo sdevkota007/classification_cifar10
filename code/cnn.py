@@ -31,7 +31,7 @@ def prepareTestset():
 
 batch_size = 32
 num_classes = 10
-epochs = 20
+epochs = 15
 data_augmentation = False
 # num_predictions = 20
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -115,5 +115,5 @@ cls_accuracy, classes = class_accuracy(cm, classes)
 cls_error_rate = 1-cls_accuracy
 print("========================================")
 print(classes)
-print("Class Accuracy: \n", cls_accuracy)
-print("Class error rate: \n", cls_error_rate)
+print("Class Accuracy: \n", np.round(cls_accuracy, 3))
+print("Class error rate: \n", np.round(cls_error_rate, 3))
