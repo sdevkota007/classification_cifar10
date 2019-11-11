@@ -108,4 +108,5 @@ venv.bak/
 data/*
 code/__pycache__
 code/saved_models
+logs/
 .idea
