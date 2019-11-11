@@ -7,6 +7,7 @@ import os
 from utils import *
 from confusion_matrix import plotConfusionMatrix, confusionMatrix, class_accuracy
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 logdir = "../logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
@@ -35,7 +36,7 @@ def prepareTestset():
 
 batch_size = 32
 num_classes = 10
-epochs = 1
+epochs = 15
 data_augmentation = False
 # num_predictions = 20
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -89,20 +90,21 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          validation_data=(x_test, y_test_one_hot),
-          shuffle=True,
-          callbacks=[tensorboard_callback])
+history = model.fit(x_train, y_train,
+                    batch_size=batch_size,
+                    epochs=epochs,
+                    validation_data=(x_test, y_test_one_hot),
+                    shuffle=True,
+                    callbacks=[tensorboard_callback])
 
-
-# Save model and weights
-if not os.path.isdir(save_dir):
-    os.makedirs(save_dir)
-model_path = os.path.join(save_dir, model_name)
-model.save(model_path)
-print('Saved trained model at %s ' % model_path)
+# Plot training & validation accuracy values
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('Model accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show()
 
 # Score trained model.
 scores = model.evaluate(x_test, y_test_one_hot, verbose=1)
@@ -122,4 +124,5 @@ print(classes)
 print("Class Accuracy: \n", np.round(cls_accuracy, 3))
 print("Class error rate: \n", np.round(cls_error_rate, 3))
 
-plotConfusionMatrix(cm, classes)
+plotConfusionMatrix(cm, classes, plot=False)
+plt.savefig("cm.png")
