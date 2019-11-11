@@ -5,6 +5,7 @@ from keras.layers import Dense, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 import os
 from utils import *
+from confusion_matrix import plotConfusionMatrix, confusionMatrix, class_accuracy
 
 
 def prepareTrainingset():
@@ -48,7 +49,7 @@ print("Shape of y-test: ", y_test.shape)
 
 # Convert class vectors to binary class matrices.
 y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+y_test_one_hot = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
 model.add(Conv2D(32, (5, 5), padding='same', strides=(1,1),
@@ -87,7 +88,7 @@ model.compile(loss='categorical_crossentropy',
 model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
-          validation_data=(x_test, y_test),
+          validation_data=(x_test, y_test_one_hot),
           shuffle=True)
 
 
@@ -99,6 +100,20 @@ model.save(model_path)
 print('Saved trained model at %s ' % model_path)
 
 # Score trained model.
-scores = model.evaluate(x_test, y_test, verbose=1)
+scores = model.evaluate(x_test, y_test_one_hot, verbose=1)
 print('Test loss:', scores[0])
 print('Test accuracy:', scores[1])
+
+prediction_prob = model.predict(x_test)
+predictions = np.argmax(prediction_prob, axis=1)
+print(predictions.shape, y_test.shape)
+
+cm, classes = confusionMatrix(y_test, predictions)
+plotConfusionMatrix(cm, classes)
+
+cls_accuracy, classes = class_accuracy(cm, classes)
+cls_error_rate = 1-cls_accuracy
+print("========================================")
+print(classes)
+print("Class Accuracy: \n", cls_accuracy)
+print("Class error rate: \n", cls_error_rate)
