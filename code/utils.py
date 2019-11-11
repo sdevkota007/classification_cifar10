@@ -1,63 +1,11 @@
 from PIL import Image
 import numpy as np
-
-def showImage(image_array, title=None):
-    '''
-    :param image_array: a numpy array
-    :return:
-    '''
-    im = Image.fromarray(image_array.astype('uint8'))
-    im.show(title="abc")
-
-
-def saveImage(image_array, name, loc = None):
-    '''
-    saves the image array 'image_array' as image at the given location 'loc' with the given name
-    :param image_array:
-    :param name:
-    :return:
-    '''
-    im = Image.fromarray(image_array.astype('uint8'))
-    im.save(name)
-
-
-########################################################################
-#
-# Functions for downloading the CIFAR-10 data-set from the internet
-# and loading it into memory.
-#
-# Implemented in Python 3.5
-#
-# Usage:
-# 1) Set the variable data_path with the desired storage path.
-# 2) Call maybe_download_and_extract() to download the data-set
-#    if it is not already located in the given data_path.
-# 3) Call load_class_names() to get an array of the class-names.
-# 4) Call load_training_data() and load_test_data() to get
-#    the images, class-numbers and one-hot encoded class-labels
-#    for the training-set and test-set.
-# 5) Use the returned data in your own program.
-#
-# Format:
-# The images for the training- and test-sets are returned as 4-dim numpy
-# arrays each with the shape: [image_number, height, width, channel]
-# where the individual pixels are floats between 0.0 and 1.0.
-#
-########################################################################
-#
-# This file is part of the TensorFlow Tutorials available at:
-#
-# https://github.com/Hvass-Labs/TensorFlow-Tutorials
-#
-# Published under the MIT License. See the file LICENSE for details.
-#
-# Copyright 2016 by Magnus Erik Hvass Pedersen
-#
-########################################################################
-
-import numpy as np
 import pickle
 import os
+
+use_first_batch_only = True
+_num_test_images_to_use = 1000
+
 
 ########################################################################
 
@@ -86,7 +34,11 @@ num_classes = 10
 # Various constants used to allocate arrays of the correct size.
 
 # Number of files for the training-set.
-_num_files_train = 5
+if use_first_batch_only:
+    _num_files_train = 1
+# using only the first batch for training
+else:
+    _num_files_train = 5
 
 # Number of images for each batch-file in the training-set.
 _images_per_file = 10000
@@ -96,7 +48,24 @@ _images_per_file = 10000
 _num_images_train = _num_files_train * _images_per_file
 
 ########################################################################
-# Private functions for downloading, unpacking and loading data-files.
+def showImage(image_array, title=None):
+    '''
+    :param image_array: a numpy array
+    :return:
+    '''
+    im = Image.fromarray(image_array.astype('uint8'))
+    im.show(title="abc")
+
+
+def saveImage(image_array, name, loc = None):
+    '''
+    saves the image array 'image_array' as image at the given location 'loc' with the given name
+    :param image_array:
+    :param name:
+    :return:
+    '''
+    im = Image.fromarray(image_array.astype('uint8'))
+    im.save(name)
 
 
 def _get_file_path(filename=""):
@@ -187,7 +156,7 @@ def load_class_names():
     return names
 
 
-def load_training_data():
+def load_training_data(first_batch_only = False):
     """
     Load all the training-data for the CIFAR-10 data-set.
     The data-set is split into 5 data-files which are merged here.
@@ -232,10 +201,10 @@ def load_test_data():
 
     images, cls = _load_data(filename="test_batch")
 
-    return images, cls
+    return images[:_num_test_images_to_use], cls[:_num_test_images_to_use]
 
 ########################################################################
 
 if __name__ == '__main__':
-    images, cls = load_training_data()
+    images, cls = load_training_data(first_batch_only=True)
     images = np.average(images, axis=3)

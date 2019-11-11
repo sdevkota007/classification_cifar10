@@ -17,7 +17,7 @@ def prepareTrainingset():
     :param file:
     :return: array of images and array of classes
     '''
-    images, cls = load_training_data()
+    images, cls = load_training_data(first_batch_only = True)
     images = images / 255
     images = np.average(images, axis=3)
     return images, cls
