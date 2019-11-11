@@ -6,6 +6,10 @@ from keras.layers import Conv2D, MaxPooling2D
 import os
 from utils import *
 from confusion_matrix import plotConfusionMatrix, confusionMatrix, class_accuracy
+from datetime import datetime
+
+logdir = "../logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
 
 def prepareTrainingset():
@@ -31,7 +35,7 @@ def prepareTestset():
 
 batch_size = 32
 num_classes = 10
-epochs = 15
+epochs = 1
 data_augmentation = False
 # num_predictions = 20
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -89,7 +93,8 @@ model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           validation_data=(x_test, y_test_one_hot),
-          shuffle=True)
+          shuffle=True,
+          callbacks=[tensorboard_callback])
 
 
 # Save model and weights
@@ -109,7 +114,6 @@ predictions = np.argmax(prediction_prob, axis=1)
 print(predictions.shape, y_test.shape)
 
 cm, classes = confusionMatrix(y_test, predictions)
-plotConfusionMatrix(cm, classes)
 
 cls_accuracy, classes = class_accuracy(cm, classes)
 cls_error_rate = 1-cls_accuracy
@@ -117,3 +121,5 @@ print("========================================")
 print(classes)
 print("Class Accuracy: \n", np.round(cls_accuracy, 3))
 print("Class error rate: \n", np.round(cls_error_rate, 3))
+
+plotConfusionMatrix(cm, classes)
