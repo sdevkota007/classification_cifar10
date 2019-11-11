@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+# custon
+data/*
+code/__pycache__
+code/saved_models
+.idea
