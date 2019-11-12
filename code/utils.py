@@ -9,14 +9,12 @@ _num_test_images_to_use = 1000
 
 ########################################################################
 
-# Directory where you want to download and save the data-set.
-# Set this before you start calling any of the functions below.
+# Directory where our CIFAR-10 data is at
 data_path = "../data/"
 
 
 ########################################################################
 # Various constants for the size of the images.
-# Use these constants in your own program.
 
 # Width and height of each image.
 img_size = 32
@@ -69,19 +67,23 @@ def saveImage(image_array, name, loc = None):
 
 
 def _get_file_path(filename=""):
-    """
+    '''
     Return the full path of a data-file for the data-set.
     If filename=="" then return the directory of the files.
-    """
+    :param filename:
+    :return:
+    '''
 
     return os.path.join(data_path, "cifar-10-batches-py/", filename)
 
 
 def _unpickle(filename):
-    """
+    '''
     Unpickle the given file and return the data.
     Note that the appropriate dir-name is prepended the filename.
-    """
+    :param filename:
+    :return:
+    '''
 
     # Create full path for the file.
     file_path = _get_file_path(filename)
@@ -97,16 +99,17 @@ def _unpickle(filename):
 
 
 def _convert_images(raw):
-    """
-    Convert images from the CIFAR-10 format and
+    '''
+    convert images from the CIFAR-10 format and
     return a 4-dim array with shape: [image_number, height, width, channel]
     where the pixels are floats between 0 and 255
-    """
+    :param raw:
+    :return:
+    '''
 
     # Convert the raw images from the data-files to floating-points.
     # raw_float = np.array(raw, dtype=float) / 255.0
     raw_float = np.array(raw, dtype=float)
-
 
     # Reshape the array to 4-dimensions.
     images = raw_float.reshape([-1, num_channels, img_size, img_size])
@@ -118,11 +121,13 @@ def _convert_images(raw):
 
 
 def _load_data(filename):
-    """
+    '''
     Load a pickled data-file from the CIFAR-10 data-set
     and return the converted images (see above) and the class-number
     for each image.
-    """
+    :param filename:
+    :return:
+    '''
 
     # Load the pickled data-file.
     data = _unpickle(filename)
@@ -141,11 +146,12 @@ def _load_data(filename):
 
 
 def load_class_names():
-    """
+    '''
     Load the names for the classes in the CIFAR-10 data-set.
     Returns a list with the names. Example: names[3] is the name
     associated with class-number 3.
-    """
+    :return:
+    '''
 
     # Load the class-names from the pickled file.
     raw = _unpickle(filename="batches.meta")[b'label_names']
@@ -157,11 +163,13 @@ def load_class_names():
 
 
 def load_training_data(first_batch_only = False):
-    """
+    '''
     Load all the training-data for the CIFAR-10 data-set.
     The data-set is split into 5 data-files which are merged here.
     Returns the images, class-numbers
-    """
+    :param first_batch_only:
+    :return:
+    '''
 
     # Pre-allocate the arrays for the images and class-numbers for efficiency.
     images = np.zeros(shape=[_num_images_train, img_size, img_size, num_channels], dtype=float)
@@ -194,10 +202,11 @@ def load_training_data(first_batch_only = False):
 
 
 def load_test_data():
-    """
+    '''
     Load all the test-data for the CIFAR-10 data-set.
     Returns the images, class-numbers
-    """
+    :return:
+    '''
 
     images, cls = _load_data(filename="test_batch")
 

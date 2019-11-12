@@ -1,15 +1,9 @@
 from __future__ import division
 from utils import *
 import numpy as np
-from confusion_matrix import plotConfusionMatrix, confusionMatrix
+from confusion_matrix import plotConfusionMatrix, confusionMatrix, class_accuracy
 import matplotlib.pyplot as plt
 
-
-def unpickle(file):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict
 
 def prepareTrainingset():
     '''
@@ -33,15 +27,21 @@ def prepareTestset():
     images = np.average(images, axis=3)
     return images, cls
 
-def get_dominant_eig(mat, num):
+def get_dominant_eig(mat, n):
+    '''
+    returns n number of dominant eigenvectors
+    :param mat:
+    :param n:
+    :return:
+    '''
     eigvals, eigvecs = np.linalg.eig(mat)
     eiglist = [(eigvals[i], eigvecs[:, i]) for i in range(len(eigvals))]
 
     # sort the eigvals in decreasing order
     eiglist = sorted(eiglist, key=lambda x: x[0], reverse=True)
 
-    # take the first num_dims eigvectors
-    w = np.array([eiglist[i][1] for i in range(num)])
+    # take the first n eigvectors
+    w = np.array([eiglist[i][1] for i in range(n)])
 
     return w
 
@@ -99,6 +99,13 @@ def fisher_ldf_classifier(training_data):
     return training_data
 
 def mahalanobis_distance(f, m, s):
+    '''
+    given feature vectors f, class mean m, and class covariance matrix s, it returns the mahanobis distance
+    :param f: a numpy array of feature vector
+    :param m: a numpy array of class mean
+    :param s: a numpy array of class covariance matrix
+    :return:
+    '''
     diff = (f-m)
     tmp = np.matmul(np.transpose(diff), np.linalg.inv(s))
     distance = np.matmul(tmp, diff)
@@ -118,6 +125,12 @@ def selectLeastDistance(classes, distances):
     return best_class, min_dist
 
 def fisher_predict(X, fisher_parameters):
+    '''
+    returns a list of predictions for the given test samples X using the fisher parameters
+    :param X: a numpy array of test samples with dimention N*d, where N is number of samples
+    :param fisher_parameters: a dictionary object containing fisher parameters
+    :return:
+    '''
     predictions = []
     h = fisher_parameters['h']
     for image in X:
@@ -142,25 +155,26 @@ def fisher_predict(X, fisher_parameters):
 
 def seggregate_class(X, Y):
     '''
-    dataset_dict =
-    {
-        data:{
-                class1: {
-                            images: [ array of images ],
-                            class_mean:
-                            class_cov_mat:
-                        }
-                class1: {
-                            images: [ array of images ],
-                            class_mean:
-                            class_cov_mat:
-                        }
-        },
-        overall_mean:
-        class_scatter_mat:
-    }
-    :param X:
-    :param Y:
+    takes features and labels as input, and returns a special dictionary object
+    For example: dataset_dict =
+                {
+                    data:{
+                            class1: {
+                                        images: [ array of images ],
+                                        class_mean:
+                                        class_cov_mat:
+                                    }
+                            class1: {
+                                        images: [ array of images ],
+                                        class_mean:
+                                        class_cov_mat:
+                                    }
+                    },
+                    overall_mean:
+                    class_scatter_mat:
+                }
+    :param X: features
+    :param Y:labels
     :return:
     '''
 
@@ -199,27 +213,43 @@ def getAccuracy(true_labels, predictions):
 def main():
     X_train, Y_train = prepareTrainingset()
     X_test, Y_test = prepareTestset()
-    saveImage(X_train[1]*255, "img1.jpg")
 
     seggregated_data = seggregate_class(X_train, Y_train)
     # seggregated_data = seggregate_class(X_train[:1000], Y_train[:1000])
 
     fisher_parameters = fisher_ldf_classifier(seggregated_data)
-    for i in range(2):
-        saveImage(fisher_parameters['data'][str(i)]['class_cov_mat'] * 255, "cov_mat_{}.jpg".format(i))
 
     # training accuracy
+    print("=================Training Summary=======================")
     predictions = fisher_predict(X_train, fisher_parameters)
     accuracy = getAccuracy(Y_train, predictions)
     print("Training accuracy: ", accuracy)
+    cm, classes = confusionMatrix(Y_train, predictions)
+    plotConfusionMatrix(cm, classes)
+
+    cls_accuracy, classes = class_accuracy(cm, classes)
+    cls_error_rate = 1 - cls_accuracy
+
+    print("Classes: ", classes)
+    print("Class Accuracy: \n", np.round(cls_accuracy, 3))
+    print("Class error rate: \n", np.round(cls_error_rate, 3))
+
 
 
     # test accuracy
+    print("=================Testing Summary=======================")
     predictions = fisher_predict(X_test, fisher_parameters)
     accuracy = getAccuracy(Y_test, predictions)
     print("Testing accuracy: ", accuracy)
     cm, classes = confusionMatrix(Y_test, predictions)
     plotConfusionMatrix(cm, classes)
+
+    cls_accuracy, classes = class_accuracy(cm, classes)
+    cls_error_rate = 1 - cls_accuracy
+
+    print("Classes: ", classes)
+    print("Class Accuracy: \n", np.round(cls_accuracy, 3))
+    print("Class error rate: \n", np.round(cls_error_rate, 3))
 
 
 if __name__ == '__main__':
